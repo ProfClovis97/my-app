@@ -1,68 +1,79 @@
-let projects = [];
-
 function addProject() {
   const projectName = document.getElementById('project-name').value;
   if (projectName === '') return;
-  
-  const project = {
+
+  const projectRef = window.database.ref('projects').push();
+  projectRef.set({
     name: projectName,
     stages: []
-  };
-  
-  projects.push(project);
+  });
+
   document.getElementById('project-name').value = '';
-  renderProjects();
 }
 
-function addStage(projectIndex) {
+function addStage(projectId) {
   const stageName = prompt('Enter stage name:');
   if (stageName === null || stageName === '') return;
 
-  projects[projectIndex].stages.push({ name: stageName, done: false });
-  renderProjects();
+  const stageRef = window.database.ref(`projects/${projectId}/stages`).push();
+  stageRef.set({
+    name: stageName,
+    done: false
+  });
 }
 
-function toggleStage(projectIndex, stageIndex) {
-  projects[projectIndex].stages[stageIndex].done = !projects[projectIndex].stages[stageIndex].done;
-  renderProjects();
+function toggleStage(projectId, stageId, done) {
+  const stageRef = window.database.ref(`projects/${projectId}/stages/${stageId}`);
+  stageRef.update({
+    done: !done
+  });
 }
 
 function renderProjects() {
   const projectsDiv = document.getElementById('projects');
   projectsDiv.innerHTML = '';
 
-  projects.forEach((project, projectIndex) => {
-    const projectDiv = document.createElement('div');
-    projectDiv.className = 'project';
+  window.database.ref('projects').on('value', (snapshot) => {
+    const projects = snapshot.val();
+    for (let projectId in projects) {
+      const project = projects[projectId];
+      const projectDiv = document.createElement('div');
+      projectDiv.className = 'project';
 
-    const projectTitle = document.createElement('h2');
-    projectTitle.textContent = project.name;
-    projectDiv.appendChild(projectTitle);
+      const projectTitle = document.createElement('h2');
+      projectTitle.textContent = project.name;
+      projectDiv.appendChild(projectTitle);
 
-    project.stages.forEach((stage, stageIndex) => {
-      const stageDiv = document.createElement('div');
-      stageDiv.className = 'stage';
+      for (let stageId in project.stages) {
+        const stage = project.stages[stageId];
+        const stageDiv = document.createElement('div');
+        stageDiv.className = 'stage';
 
-      const stageName = document.createElement('input');
-      stageName.type = 'text';
-      stageName.value = stage.name;
-      stageName.disabled = true;
-      stageDiv.appendChild(stageName);
+        const stageName = document.createElement('input');
+        stageName.type = 'text';
+        stageName.value = stage.name;
+        stageName.disabled = true;
+        stageDiv.appendChild(stageName);
 
-      const stageButton = document.createElement('button');
-      stageButton.textContent = stage.done ? 'Undo' : 'Done';
-      stageButton.className = stage.done ? 'done' : '';
-      stageButton.onclick = () => toggleStage(projectIndex, stageIndex);
-      stageDiv.appendChild(stageButton);
+        const stageButton = document.createElement('button');
+        stageButton.textContent = stage.done ? 'Undo' : 'Done';
+        stageButton.className = stage.done ? 'done' : '';
+        stageButton.onclick = () => toggleStage(projectId, stageId, stage.done);
+        stageDiv.appendChild(stageButton);
 
-      projectDiv.appendChild(stageDiv);
-    });
+        projectDiv.appendChild(stageDiv);
+      }
 
-    const addStageButton = document.createElement('button');
-    addStageButton.textContent = 'Add Stage';
-    addStageButton.onclick = () => addStage(projectIndex);
-    projectDiv.appendChild(addStageButton);
+      const addStageButton = document.createElement('button');
+      addStageButton.textContent = 'Add Stage';
+      addStageButton.onclick = () => addStage(projectId);
+      projectDiv.appendChild(addStageButton);
 
-    projectsDiv.appendChild(projectDiv);
+      projectsDiv.appendChild(projectDiv);
+    }
   });
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+  renderProjects();
+});
