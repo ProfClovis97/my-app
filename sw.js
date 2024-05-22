@@ -6,7 +6,9 @@ self.addEventListener('install', (event) => {
           '/index.html',
           '/styles.css',
           '/app.js',
-          '/manifest.json'
+          '/manifest.json',
+          '/email.png',
+          '/instagram.jpg'
         ]);
       })
     );
