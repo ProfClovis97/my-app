@@ -35,41 +35,45 @@ function renderProjects() {
 
   window.database.ref('projects').on('value', (snapshot) => {
     const projects = snapshot.val();
-    for (let projectId in projects) {
-      const project = projects[projectId];
-      const projectDiv = document.createElement('div');
-      projectDiv.className = 'project';
+    projectsDiv.innerHTML = ''; // Limpar antes de adicionar novamente
 
-      const projectTitle = document.createElement('h2');
-      projectTitle.textContent = project.name;
-      projectDiv.appendChild(projectTitle);
+    if (projects) {
+      for (let projectId in projects) {
+        const project = projects[projectId];
+        const projectDiv = document.createElement('div');
+        projectDiv.className = 'project';
 
-      for (let stageId in project.stages) {
-        const stage = project.stages[stageId];
-        const stageDiv = document.createElement('div');
-        stageDiv.className = 'stage';
+        const projectTitle = document.createElement('h2');
+        projectTitle.textContent = project.name;
+        projectDiv.appendChild(projectTitle);
 
-        const stageName = document.createElement('input');
-        stageName.type = 'text';
-        stageName.value = stage.name;
-        stageName.disabled = true;
-        stageDiv.appendChild(stageName);
+        for (let stageId in project.stages) {
+          const stage = project.stages[stageId];
+          const stageDiv = document.createElement('div');
+          stageDiv.className = 'stage';
 
-        const stageButton = document.createElement('button');
-        stageButton.textContent = stage.done ? 'Undo' : 'Done';
-        stageButton.className = stage.done ? 'done' : '';
-        stageButton.onclick = () => toggleStage(projectId, stageId, stage.done);
-        stageDiv.appendChild(stageButton);
+          const stageName = document.createElement('input');
+          stageName.type = 'text';
+          stageName.value = stage.name;
+          stageName.disabled = true;
+          stageDiv.appendChild(stageName);
 
-        projectDiv.appendChild(stageDiv);
+          const stageButton = document.createElement('button');
+          stageButton.textContent = stage.done ? 'Undo' : 'Done';
+          stageButton.className = stage.done ? 'done' : '';
+          stageButton.onclick = () => toggleStage(projectId, stageId, stage.done);
+          stageDiv.appendChild(stageButton);
+
+          projectDiv.appendChild(stageDiv);
+        }
+
+        const addStageButton = document.createElement('button');
+        addStageButton.textContent = 'Add Stage';
+        addStageButton.onclick = () => addStage(projectId);
+        projectDiv.appendChild(addStageButton);
+
+        projectsDiv.appendChild(projectDiv);
       }
-
-      const addStageButton = document.createElement('button');
-      addStageButton.textContent = 'Add Stage';
-      addStageButton.onclick = () => addStage(projectId);
-      projectDiv.appendChild(addStageButton);
-
-      projectsDiv.appendChild(projectDiv);
     }
   });
 }
